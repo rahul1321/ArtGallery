@@ -124,14 +124,12 @@ class EditCategory extends Component {
 }
 
 const mapStateToProps = (state) => {
-    console.log("mapStateToProps editCategory");
     return {
         categories: state.categoryReducer.categories,
     }
 }
 
 const mapDispatchToProps = (dispatch) => {
-    console.log("mapDispatchToProps editCategory");
     return {
         setCategories: (categories)=> {
             dispatch(categoryAction.setCategories(categories))
