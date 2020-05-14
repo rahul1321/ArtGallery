@@ -9,17 +9,11 @@ import "react-toastify/dist/ReactToastify.css";
 import store from '../redux/store';
 import { Provider } from 'react-redux';
 
-const loader = document.querySelector('.loader');
-
-// if you want to show the loader when React loads data again
-const showLoader = () => loader.classList.remove('loader--hide');
-
-const hideLoader = () => loader.classList.add('loader--hide');
-
 class App extends Component {
 
-    componentDidMount() {
-        //this.props.hideLoader();
+    componentDidMount(){
+        const loader = document.querySelector('.loader');
+        loader.classList.add('loader--hide');
     }
 
     render() {
@@ -35,18 +29,6 @@ class App extends Component {
         );
     }
 }
-
-// the setTimeout simulates the time it takes react to load, and is not part of the solution
-/* setTimeout(() =>
-    // the show/hide functions are passed as props
-    ReactDOM.render(
-        <App
-            hideLoader={hideLoader}
-            showLoader={showLoader}
-        />,
-        document.getElementById('root')
-    )
-    , 1000); */
 
 export default App;
 

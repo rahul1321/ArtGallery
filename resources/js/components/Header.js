@@ -125,7 +125,6 @@ const mapStateToProps = (state) => {
 }
 
 const mapDispatchToProps = (dispatch) => {
-    console.log("mapDispatchToProps header");
     return {
         setCategories: (categories) => {
             dispatch(categoryAction.setCategories(categories))

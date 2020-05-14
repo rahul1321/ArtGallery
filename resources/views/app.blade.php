@@ -18,7 +18,7 @@
     </head>
     <body>
         <div id="root"></div>
-        {{-- <div class="loader"></div> --}}
+        <div class="loader"></div>
 
         <script src={{ asset('js/app.js')}}></script>
     </body>
