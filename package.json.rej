@@ -1,0 +1,10 @@
+--- package.json
++++ package.json
+@@ -26,7 +26,6 @@
+     "dependencies": {
+         "@material-ui/core": "^4.9.12",
+         "@material-ui/icons": "^4.9.1",
+-        "crypto-js": "^4.0.0",
+         "glamor": "^2.20.40",
+         "glamorous": "^5.0.0",
+         "jquery": "^3.4.1",
