@@ -3,7 +3,8 @@ import Axios from 'axios';
 import CustomToast from '../../Utils/CustomToast';
 import { connect } from 'react-redux';
 import Fade from 'react-reveal/Fade';
-
+import hmacSHA512 from 'crypto-js/hmac-sha512';
+import Spinner from '../../Utils/Spinner';
 
 class Contact extends Component {
 
@@ -18,7 +19,8 @@ class Contact extends Component {
       fnameError: "",
       emailError: "",
       subjectError: "",
-      messageError: ""
+      messageError: "",
+      loading: false,
     }
 
     this.changeHandler = this.changeHandler.bind(this);
@@ -43,11 +45,25 @@ class Contact extends Component {
         message: this.state.message
       };
 
-      Axios.post("api/messages", data)
-        .then(res => {
-          CustomToast.success("Message send successfully");
-          this.clearFields();
-        });
+      let headers = {
+        'Authorization': localStorage.getItem(hmacSHA512('admin', 'k').toString())
+      }
+
+      this.setState({ loading: true }, () => {
+        Axios.post("api/messages", data)
+          .then(res => {
+            this.setState({ loading: false });
+            if (res.data.success) {
+              CustomToast.success("Message send successfully");
+              this.clearFields();
+            }else
+              CustomToast.error("Something went wrong");
+
+          }).catch(error => {
+            this.setState({ loading: false });
+            CustomToast.error("Something went wrong");
+          })
+      });
     }
   }
 
@@ -179,6 +195,7 @@ class Contact extends Component {
             </div>
           </div>
         </Fade>
+        <Spinner loading={this.state.loading} />
 
       </>
     );

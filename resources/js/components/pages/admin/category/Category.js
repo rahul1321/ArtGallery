@@ -40,9 +40,16 @@ class Category extends Component {
             Axios.delete('api/categories/' + category.id)
             .then(res => {
                 this.setState({loading: false});
-                const categories = this.props.categories.filter(item => item.id != category.id)
-                this.props.setCategories(categories);
-                CustomToast.success("Successfully deleted");
+                if(res.data.success){
+                    const categories = this.props.categories.filter(item => item.id != category.id)
+                    this.props.setCategories(categories);
+                    CustomToast.success("Successfully deleted");
+                }else
+                    CustomToast.error("Something went wrong");
+            })
+            .catch(error=>{
+                this.setState({loading: false});
+                CustomToast.error("Something went wrong");
             })
         })
     }

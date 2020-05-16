@@ -3,6 +3,8 @@ import Axios from 'axios';
 import CustomToast from '../../../../Utils/CustomToast';
 import { connect } from 'react-redux';
 import profileAction from '../../../../redux/actions/profileAction';
+import Spinner from '../../../../Utils/Spinner';
+import hmacSHA512 from 'crypto-js/hmac-sha512';
 
 
 class AdminProfile extends Component {
@@ -19,18 +21,18 @@ class AdminProfile extends Component {
         this.updateProfile = this.updateProfile.bind(this);
     }
 
-    componentDidUpdate(prevProps){
-        
-        if(prevProps.profile !== this.props.profile){
+    componentDidUpdate(prevProps) {
+
+        if (prevProps.profile !== this.props.profile) {
             let profile = this.props.profile;
             this.setState(this.setProfileObjectData(profile));
         }
-            
+
     }
 
 
-    setProfileObjectData(profile){
-       return {
+    setProfileObjectData(profile) {
+        return {
             id: profile.id,
             name: profile.name,
             phone: profile.phone,
@@ -43,7 +45,8 @@ class AdminProfile extends Component {
             imageFile: {},
             imgPreviewSrc: "/images/profile_pic.png",
             nameError: "",
-            emailError: ""
+            emailError: "",
+            loading: false,
         }
     }
 
@@ -76,11 +79,25 @@ class AdminProfile extends Component {
 
             formData.append("_method", 'put');
 
-            Axios.post('api/profile/' + this.state.id, formData)
-                .then(res => {
-                    this.props.setProfile(res.data);
-                    CustomToast.success("Successfully Profile Updated");
-                });
+            let headers = {
+                'Authorization': localStorage.getItem(hmacSHA512('admin', 'k').toString())
+            }
+
+            this.setState({ loading: true }, () => {
+                Axios.post('api/profile/' + this.state.id, formData, { headers: headers })
+                    .then(res => {
+                        this.setState({ loading: false });
+                        if (res.data.success) {
+                            this.props.setProfile(res.data.profile);
+                            CustomToast.success("Successfully Profile Updated");
+                        } else
+                            CustomToast.error("Something went wrong");
+                    })
+                    .catch(error => {
+                        this.setState({ loading: false });
+                        CustomToast.error("Something went wrong");
+                    })
+            });
         }
     }
 
@@ -196,6 +213,7 @@ class AdminProfile extends Component {
                         </div>
                     </div>
                 </div>
+                <Spinner loading={this.state.loading} />
             </>
         );
     }

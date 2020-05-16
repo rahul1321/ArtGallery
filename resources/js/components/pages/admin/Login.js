@@ -16,7 +16,7 @@ class Login extends Component {
             email: "",
             password: "",
             emailError: "",
-            passwordError: ""
+            passwordError: "",
         }
 
         this.changeHandler = this.changeHandler.bind(this);
@@ -26,54 +26,57 @@ class Login extends Component {
 
     changeHandler(e) {
         this.setState({ [e.target.name]: e.target.value });
-
     }
 
     login() {
         event.preventDefault();
-        
-        if(this.isValidFields()){
+
+        if (this.isValidFields()) {
             let email = this.state.email;
             let password = this.state.password;
-    
+
             Axios.get('api/admin/' + email + '/' + password)
                 .then(res => {
-                    if(Object.keys(res.data).length > 0){
-                        let enCryprtKey = hmacSHA512('admin','k').toString();
-                        localStorage.setItem(enCryprtKey, res.data);
+                    if (res.data.success) {
+                        let enCryprtKey = hmacSHA512('admin', 'k').toString();
+                        localStorage.setItem(enCryprtKey, res.data.access_token);
                         window.location.pathname = '/admin-category';
-                    }else{
+                    } else if (res.data.status == 404)
                         CustomToast.error("Wrong Email or Password");
-                    }
-                    
-                });
+                    else
+                        CustomToast.error("Internal error, Please try again");
+                })
+                .catch(error => {
+                    CustomToast.error("Internal error, Please try again");
+                })
+
         }
     }
 
-    isValidFields(){
+    isValidFields() {
         this.clearErrorMessage();
-        
+
         let isValid = true;
 
-        if(this.state.email.trim()==""){
+        if (this.state.email.trim() == "") {
             isValid = false;
-            this.setState({emailError:"*Please enter valid email"});
+            this.setState({ emailError: "*Please enter valid email" });
         }
-        if(this.state.password.trim()==""){
+        if (this.state.password.trim() == "") {
             isValid = false;
-            this.setState({passwordError:"*Please enter password"});
+            this.setState({ passwordError: "*Please enter password" });
         }
 
         return isValid;
     }
 
 
-    clearErrorMessage(){
-        this.setState({emailError:"",passwordError:""});
+    clearErrorMessage() {
+        this.setState({ emailError: "", passwordError: "" });
     }
 
     render() {
-        let enCryprtKey = hmacSHA512('admin','k').toString();
+        let enCryprtKey = hmacSHA512('admin', 'k').toString();
 
         if (localStorage.getItem(enCryprtKey) != null)
             return (<Redirect to="/admin-category"></Redirect>)
@@ -85,7 +88,7 @@ class Login extends Component {
                     aria-labelledby="simple-modal-title"
                     aria-describedby="simple-modal-description"
                 >
-                     <div className="limiter">
+                    <div className="limiter">
                         <div className="container-login100">
                             <div className="wrap-login100 p-l-55 p-r-55 p-t-65 p-b-50">
                                 <form onSubmit={this.login} className="login100-form validate-form">
@@ -110,8 +113,6 @@ class Login extends Component {
                         </div>
                     </div>
                 </Modal>
-
-
             </>
         );
     }

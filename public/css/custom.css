@@ -115,7 +115,7 @@
 }
 
 .loader--hide {
-  opacity: 0;
+  display :none;
 }
 
 @keyframes load8 {
@@ -169,5 +169,8 @@ input[type="file"]{
     padding: 0;
 }
 
+.container-idle-poopup{
+
+}
 
 

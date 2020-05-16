@@ -6,6 +6,7 @@ import categoryAction from '../redux/actions/categoryAction';
 import hmacSHA512 from 'crypto-js/hmac-sha512';
 import profileAction from '../redux/actions/profileAction';
 import Bounce from 'react-reveal/Bounce';
+import CustomToast from '../Utils/CustomToast';
 
 
 class Header extends Component {
@@ -16,7 +17,7 @@ class Header extends Component {
         this.state = {
             categories: [],
             isLoggedIn: localStorage.getItem(enCryprtKey) != null,
-            profile: {}
+            profile: {},
         }
         this.logout = this.logout.bind(this);
     }
@@ -41,8 +42,21 @@ class Header extends Component {
     }
 
     logout() {
-        localStorage.removeItem(hmacSHA512('admin', 'k').toString());
-        window.location.pathname = '/admin';
+        let key = hmacSHA512('admin', 'k').toString();
+
+        Axios.post("api/logout", { access_token: localStorage.getItem(key) })
+            .then(res => {
+                if (res.data.success) {
+                    localStorage.removeItem(key);
+                    window.location.pathname = '/admin';
+                } else {
+                    CustomToast.error("Something went wrong, Please try again");
+                }
+            })
+            .catch(error => {
+                CustomToast.error("Something went wrong, Please try again");
+            });
+
     }
 
 
@@ -51,12 +65,12 @@ class Header extends Component {
         return (
             <>
                 <nav className="navbar navbar-expand-lg navbar-light">
-                    
+
                     <Bounce top>
                         <div className="col-6 col-xl-3">
                             <h1 className="mb-0 app-title"><Link to="/" className="text-black h2 mb-0">Art Gallery<span className="text-primary">.</span></Link></h1>
-                        </div> 
-                    </Bounce> 
+                        </div>
+                    </Bounce>
                     <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
                         <span className="navbar-toggler-icon"></span>
                     </button>

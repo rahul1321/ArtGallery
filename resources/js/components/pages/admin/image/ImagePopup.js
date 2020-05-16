@@ -4,7 +4,7 @@ import Axios from 'axios';
 import CustomToast from '../../../../Utils/CustomToast';
 import { connect } from 'react-redux';
 import Spinner from '../../../../Utils/Spinner';
-
+import hmacSHA512 from 'crypto-js/hmac-sha512';
 
 class ImagePopup extends Component {
 
@@ -59,27 +59,45 @@ class ImagePopup extends Component {
             formData.append('category_id', category_id);
             formData.append('description', this.state.description);
 
+            let headers = { 
+                'Authorization': localStorage.getItem(hmacSHA512('admin', 'k').toString())
+            }
+
             if (this.state.isEdit) {
                 formData.append("_method", 'put');
 
                 this.setState({loading: true}, ()=>{
-                    Axios.post('api/images/' + this.state.image.id, formData)
+                    Axios.post('api/images/' + this.state.image.id, formData, {headers: headers})
                     .then(res => {
-                        this.setState({loading: false})
-                        this.props.editImageRow(res.data);
-                        this.closeModal();
-                        CustomToast.success("Successfully updated");
+                        this.setState({loading:false});
+                        if(res.data.success){
+                            this.props.editImageRow(res.data.image);
+                            this.closeModal();
+                            CustomToast.success("Successfully updated");
+                        }else
+                            CustomToast.error("Something went wrong");
+                    })
+                    .catch(error=>{
+                        this.setState({loading:false});
+                        CustomToast.error("Something went wrong");
                     });
                 });
                 
             } else {
                 this.setState({loading: true}, ()=>{
-                    Axios.post('api/images', formData)
+                    Axios.post('api/images', formData ,{headers: headers})
                     .then(res => {
-                        this.setState({loading: false})
-                        this.props.addImageRow(res.data);
-                        this.closeModal();
-                        CustomToast.success("Successfully added");
+                        this.setState({loading:false});
+                        if(res.data.success){
+                            this.props.addImageRow(res.data.image);
+                            this.closeModal();
+                            CustomToast.success("Successfully added");
+                        }else
+                            CustomToast.error("Something went wrong");
+                    })
+                    .catch(error=>{
+                        this.setState({loading:false});
+                        CustomToast.error("Something went wrong");
                     });
                 });
             }

@@ -5,31 +5,44 @@ import Axios from 'axios';
 import CustomToast from '../../../../Utils/CustomToast';
 import DeleteIcon from '@material-ui/icons/Delete';
 import IconButton from '@material-ui/core/IconButton';
-
-
+import Spinner from '../../../../Utils/Spinner';
 
 class Message extends Component {
 
-    constructor(){
+    constructor() {
         super();
-        this.state={
-            messages: []
+        this.state = {
+            messages: [],
+            loading: false
         }
     }
 
-    componentDidMount(){
+    componentDidMount() {
         Axios.get('api/messages')
-        .then(res=>{
-            this.setState({messages: res.data});
-        })
+            .then(res => {
+                this.setState({ messages: res.data });
+            })
     }
 
-    deleteMessage(message){
-        Axios.delete('api/messages/'+message.id)
-        .then(res=>{
-            const messages = this.state.messages.filter(item=> item.id != message.id);
-            this.setState({messages: messages});
-            CustomToast.success("Successfully deleted");
+    deleteMessage(message) {
+
+
+        this.setState({ loading: true }, () => {
+            Axios.delete('api/messages/' + message.id)
+                .then(res => {
+                this.setState({ loading: false });
+                if(res.data.success){
+                    const messages = this.state.messages.filter(item => item.id != message.id);
+                    this.setState({ messages: messages });
+                    CustomToast.success("Successfully deleted");
+                    this.setState({loading: false});
+                }else
+                    CustomToast.error("Something went wrong");
+                })
+                .catch(error=>{
+                    this.setState({loading: false});
+                    CustomToast.error("Something went wrong");
+                })
         })
     }
 
@@ -46,11 +59,11 @@ class Message extends Component {
             {
                 Header: 'Message',
                 width: 650,
-                Cell: (props)=>{
+                Cell: (props) => {
                     let message = props.original;
                     return (
-                        <div style={{padding:"6px"}}>
-                            <p>Name: {message.fname+" "+ (message.lname==null?"":message.lname)}</p>
+                        <div style={{ padding: "6px" }}>
+                            <p>Name: {message.fname + " " + (message.lname == null ? "" : message.lname)}</p>
                             <p>Subject: {message.subject}</p>
                             <p>Message: {message.message}</p>
                         </div>
@@ -82,12 +95,13 @@ class Message extends Component {
                         <h3>Messages</h3>
                     </div>
                 </div>
-              <ReactTable
+                <ReactTable
                     columns={columns}
                     data={this.state.messages}
                     defaultPageSize={10}
                     noDataText={"No messages found"}
-                />  
+                />
+                 <Spinner loading={this.state.loading} />
             </>
         );
     }

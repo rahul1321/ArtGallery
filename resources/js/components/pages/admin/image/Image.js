@@ -54,9 +54,16 @@ class Image extends Component {
             Axios.delete('api/images/' + image.id)
             .then(res => {
                 this.setState({loading: false});
-                const images = this.state.images.filter(item => item.id != image.id)
-                this.setState({ images: images });
-                CustomToast.success("Successfully deleted");
+                if(res.data.success){
+                    const images = this.state.images.filter(item => item.id != image.id)
+                    this.setState({ images: images });
+                    CustomToast.success("Successfully deleted");
+                }else
+                    CustomToast.error("Something went wrong");
+            })
+            .catch(error=>{
+                this.setState({loading: false});
+                CustomToast.error("Something went wrong");
             })
         })
     }

@@ -41,6 +41,7 @@
         "lightgallery": "^1.6.14",
         "react-bootstrap": "^1.0.1",
         "react-encrypt": "^1.0.1",
+        "react-idle-timer": "^4.2.12",
         "react-images": "^1.1.7",
         "react-photo-gallery": "^8.0.0",
         "react-redux": "^7.2.0",

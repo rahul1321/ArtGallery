@@ -5,6 +5,7 @@ import CustomToast from '../../../../Utils/CustomToast';
 import { connect } from 'react-redux';
 import categoryAction from '../../../../redux/actions/categoryAction';
 import Spinner from '../../../../Utils/Spinner';
+import hmacSHA512 from 'crypto-js/hmac-sha512';
 
 class EditCategory extends Component {
 
@@ -39,27 +40,40 @@ class EditCategory extends Component {
             var category = {
                 name: this.state.name
             }
+            let headers = { 
+                'Authorization': localStorage.getItem(hmacSHA512('admin', 'k').toString())
+            }
 
             if (this.state.isEdit) {
 
                 this.setState({loading:true}, ()=>{
-                    Axios.put('api/categories/' + this.state.category.id, category)
+                    Axios.put('api/categories/' + this.state.category.id, category, {headers: headers})
                     .then(res => {
                         this.setState({loading:false});
-                        this.editCategoryRow(res.data);
-                        this.closeModal();
-                        CustomToast.success("Successfully updated");
+                        if(res.data.success){
+                            this.editCategoryRow(res.data.category);
+                            this.closeModal();
+                            CustomToast.success("Successfully updated");
+                        }else
+                            CustomToast.error("Something went wrong");
                     });
                 });                
             }
             else {
                 this.setState({loading:true}, ()=>{
-                    Axios.post('api/categories', category)
+                    Axios.post('api/categories', category, {headers:headers })
                     .then(res => {
                         this.setState({loading:false});
-                        this.addCategoryRow(res.data);
-                        this.closeModal();
-                        CustomToast.success("Successfully added");
+                        if(res.data.success){
+                            this.addCategoryRow(res.data.category);
+                            this.closeModal();
+                            CustomToast.success("Successfully added");
+                        }else
+                            CustomToast.error("Something went wrong");
+                    })
+                    .catch(error=>{
+                        this.setState({loading:false});
+                        CustomToast.error("Something went wrong");
                     });
                 });
             }

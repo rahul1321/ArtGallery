@@ -4,9 +4,9 @@ import BeatLoader from "react-spinners/BeatLoader";
  
 // Can be a string as well. Need to ensure each key-value pair ends with ;
 const override = css`
-    left: 42%;
-    position: absolute;
-    top: 50%;
+  left: 42%;
+  position: fixed;
+  top: 40%;
 `;
  
 class Spinner extends Component {

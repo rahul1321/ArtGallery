@@ -19,6 +19,8 @@ Route::view('/{path?}', 'app');
 //Admin CRUD
 Route::get('api/admin/{email}/{password}','Api\AdminController@getAdmin');
 
+Route::post("api/logout", "Api\AdminController@logout");
+
 
 // Category CRUD
 Route::resource('api/categories', 'Api\CategoryController');
