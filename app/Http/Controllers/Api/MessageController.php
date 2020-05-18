@@ -11,9 +11,22 @@ use Illuminate\Support\Facades\Log;
 
 class MessageController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return Response()->json(Message::all());
+        try {
+            $token = $request->header('Authorization');
+            if ($token) {
+                if (Utils::isValidToken($token)) {
+                    $messages = Message::all();
+                    return response()->json(["success"=> true, "status"=> 200, "messages" => $messages]);
+                }
+                return response()->json(["success"=> false, "status"=> 401, "message" =>"Access Denied"]);
+            }
+            return response()->json(["success"=> false, "status"=> 401, "message" =>"Access Denied"]);
+        } catch (Exception $ex) {
+            Log::error($ex);
+            return Response()->json(["success"=>false, "status"=> 500, "message" =>"Internal server error"]);
+        }
     }
 
    
@@ -34,15 +47,21 @@ class MessageController extends Controller
         }
     }
 
-    public function destroy(Message $message)
-    { 
+    public function destroy(Request $request, Message $message)
+    {
         try {
-            $message->delete();
-            return Response()->json(["success"=>true, "status"=> 200, "message" => "Deleted successfully"]); 
-
+            $token = $request->header('Authorization');
+            if ($token) {
+                if (Utils::isValidToken($token)) {
+                    $message->delete();
+                    return Response()->json(["success"=>true, "status"=> 200, "message" => "Deleted successfully"]);
+                }
+                return response()->json(["success"=> false, "status"=> 401, "message" =>"Access Denied"]);
+            }
+            return response()->json(["success"=> false, "status"=> 401, "message" =>"Access Denied"]);
         } catch (Exception $ex) {
-           Log::error($ex);
-           return Response()->json(["success"=>false, "status"=> 500, "message" => "Internal server error"]); 
+            Log::error($ex);
+            return Response()->json(["success"=>false, "status"=> 500, "message" => "Internal server error"]);
         }
     }
 }

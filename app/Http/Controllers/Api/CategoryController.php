@@ -13,11 +13,15 @@ use Illuminate\Support\Facades\Log;
 
 class CategoryController extends Controller
 {
-    
     public function index()
     {
-       $categories = Category::all();
-       return Response()->json($categories);
+        try {
+            $categories = Category::all();
+            return Response()->json(["success"=>true, "status"=> 200, "categories" => $categories]);
+        } catch (Exception $ex) {
+            Log::error($ex);
+            return Response()->json(["success"=>false, "status"=> 500, "message" =>"Internal server error"]);
+        }
     }
 
     
@@ -25,90 +29,93 @@ class CategoryController extends Controller
     {
         try {
             $token = $request->header('Authorization');
-            if($token){
-                if(Utils::isValidToken($token)){
+            if ($token) {
+                if (Utils::isValidToken($token)) {
                     $category = new Category();
                     $category->name = $request->name;
                     $category->save();
         
                     return Response()->json(["success"=>true, "status"=> 200 , "category"=> $category]);
-                }else
-                    return response()->json(["success"=> false, "status"=> 401, "message" =>"Access Denied"]);
-
-            }else
+                }
                 return response()->json(["success"=> false, "status"=> 401, "message" =>"Access Denied"]);
-        }catch (Exception $ex) {
+            }
+            return response()->json(["success"=> false, "status"=> 401, "message" =>"Access Denied"]);
+        } catch (Exception $ex) {
             Log::error($ex);
-            return Response()->json(["success"=>false, "status"=> 500]);
+            return Response()->json(["success"=>false, "status"=> 500, "message" =>"Internal server error"]);
         }
     }
 
     public function update(Request $request, Category $category)
     {
-       try {
+        try {
             $token = $request->header('Authorization');
-            if($token){
-                if(Utils::isValidToken($token)){
+            if ($token) {
+                if (Utils::isValidToken($token)) {
                     $category->name = $request->name;
                     $category->save();
         
                     return Response()->json(["success"=>true, "status"=> 200 , "category"=> $category]);
-                }else
-                    return response()->json(["success"=> false, "status"=> 401, "message" =>"Access Denied"]);
-
-            }else
+                }
                 return response()->json(["success"=> false, "status"=> 401, "message" =>"Access Denied"]);
-        }catch (Exception $ex) {
+            }
+            return response()->json(["success"=> false, "status"=> 401, "message" =>"Access Denied"]);
+        } catch (Exception $ex) {
             Log::error($ex);
-            return Response()->json(["success"=>false, "status"=> 500]);
+            return Response()->json(["success"=>false, "status"=> 500, "message" =>"Internal server error"]);
         }
-
     }
 
 
-    public function destroy(Category $category)
+    public function destroy(Request $request, Category $category)
     {
         try {
-            if($this->deleteAllImagesByCategory($category->id)){ // delete all images of category
-                $category->delete();
-                return Response()->json(["success"=>true, "status"=> 200, "message" => "Deleted successfully"]); 
-            }else
-                return Response()->json(["success"=>false, "status"=> 403, "message" => "Failed"]); 
-            
+            $token = $request->header('Authorization');
+            if ($token) {
+                if (Utils::isValidToken($token)) {
+                    if ($this->deleteAllImagesByCategory($category->id)) { // delete all images of category
+                        $category->delete();
+                        return Response()->json(["success"=>true, "status"=> 200, "message" => "Deleted successfully"]);
+                    }
+                    return Response()->json(["success"=>false, "status"=> 403, "message" => "Failed"]);
+                }
+                return response()->json(["success"=> false, "status"=> 401, "message" =>"Access Denied"]);
+            }
+            return response()->json(["success"=> false, "status"=> 401, "message" =>"Access Denied"]);
         } catch (Exception $ex) {
-           Log::error($ex);
-           return Response()->json(["success"=>false, "status"=> 500, "message" => "Internal server error"]); 
+            Log::error($ex);
+            return Response()->json(["success"=>false, "status"=> 500, "message" => "Internal server error"]);
         }
-       
     }
 
 
-    public function deleteAllImagesByCategory($categoryId){
+    public function deleteAllImagesByCategory($categoryId)
+    {
         try {
-            $images = Image::where('category_id',$categoryId)->get();
+            $images = Image::where('category_id', $categoryId)->get();
         
-            foreach($images as $image){
-                $this->deleteImageFile($image->image);
+            foreach ($images as $image) {
+                $file_path = public_path('images')."/".$image->image;
+                Utils::deleteFile($file_path);
                 $image->delete();
-           }
-           return true;
+            }
+            return true;
         } catch (Exception $ex) {
             Log::error($ex);
             return false;
         }
-        
     }
 
-    public function deleteImageFile($imageName)
+    public function getCategoriesWithCoverImage()
     {
-        $file_path = public_path('images')."/".$imageName;
-        unlink($file_path);
-    }
+        try {
+            $categories = DB::select(DB::raw("SELECT c.id,c.name,i.image, COUNT(*) as numofimage FROM images as i INNER JOIN
+            categories as c on i.category_id = c.id Group BY i.category_id"));
 
-    public function getCategoriesWithCoverImage(){
-        $categories = DB::select( DB::raw("SELECT c.id,c.name,i.image, COUNT(*) as numofimage FROM images as i INNER JOIN
-         categories as c on i.category_id = c.id Group BY i.category_id"));
-        
-        return Response()->json($categories);
+            return Response()->json(["success"=>true, "status"=> 200, "categories" => $categories]);
+        } catch (Exception $ex) {
+            Log::error($ex);
+            return Response()->json(["success"=>false, "status"=> 500, "message" => "Internal server error"]);
+        }
     }
 }

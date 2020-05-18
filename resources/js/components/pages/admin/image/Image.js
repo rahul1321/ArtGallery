@@ -11,7 +11,8 @@ import Axios from 'axios';
 import CustomModal from '../../../../Utils/CustomModal';
 import CustomToast from '../../../../Utils/CustomToast';
 import Spinner from '../../../../Utils/Spinner';
-
+import ConfirmDialog from '../../../../Utils/ConfirmDialog';
+import hmacSHA512 from 'crypto-js/hmac-sha512';
 
 class Image extends Component {
 
@@ -23,15 +24,21 @@ class Image extends Component {
             open: false,
             title: '',
             content: '',
-            loading: false
+            loading: false,
+            openConfirmDialog: false,
+            deletedImage: null
         }
+
+        this.deleteImage = this.deleteImage.bind(this);
     }
 
     componentDidMount() {
         Axios.get('/api/images')
             .then(res => {
-                console.log(res.data);
-                this.setState({ images: res.data });
+                if (res.data.success)
+                    this.setState({ images: res.data.images });
+                else
+                    this.setState({ images: [] });
             });
     }
 
@@ -49,23 +56,35 @@ class Image extends Component {
         });
     }
 
+    openConfirmDialog(image) {
+        this.setState({ deletedImage: image, openConfirmDialog: true });
+    }
+
     deleteImage(image) {
-        this.setState({loading: true},()=>{
-            Axios.delete('api/images/' + image.id)
-            .then(res => {
-                this.setState({loading: false});
-                if(res.data.success){
-                    const images = this.state.images.filter(item => item.id != image.id)
-                    this.setState({ images: images });
-                    CustomToast.success("Successfully deleted");
-                }else
-                    CustomToast.error("Something went wrong");
+        let deletedImage = this.state.deletedImage;
+        if (deletedImage != null) {
+            let headers = {
+                'Authorization': localStorage.getItem(hmacSHA512('admin', 'k').toString())
+            }
+            this.setState({ loading: true }, () => {
+                Axios.delete('api/images/' + deletedImage.id, { headers: headers })
+                    .then(res => {
+                        this.setState({ loading: false });
+                        if (res.data.success) {
+                            const images = this.state.images.filter(item => item.id != deletedImage.id)
+                            this.setState({ deletedImage: null, openConfirmDialog: false, images: images });
+                            CustomToast.success("Successfully deleted");
+                        } else
+                            CustomToast.error(res.data.message);
+                    })
+                    .catch(error => {
+                        this.setState({ loading: false });
+                        CustomToast.error("Something went wrong");
+                    })
             })
-            .catch(error=>{
-                this.setState({loading: false});
-                CustomToast.error("Something went wrong");
-            })
-        })
+        } else {
+            CustomToast.error("Image not found");
+        }
     }
 
     openModal(image) {
@@ -119,7 +138,7 @@ class Image extends Component {
                             <IconButton size="small" className="btn-edit" onClick={this.openModal.bind(this, props.original)} aria-label="delete">
                                 <EditIcon />
                             </IconButton>
-                            <IconButton size="small" className="btn-delete" onClick={this.deleteImage.bind(this, props.original)} aria-label="delete">
+                            <IconButton size="small" className="btn-delete" onClick={this.openConfirmDialog.bind(this, props.original)} aria-label="delete">
                                 <DeleteIcon />
                             </IconButton>
                         </>
@@ -136,7 +155,7 @@ class Image extends Component {
                     <div className="col-6 col-xl-5">
                         <h3>Images</h3>
                     </div>
-                    
+
                     <Button onClick={this.openModal.bind(this, null)} size="small" variant="contained" className="btn-edit" startIcon={<AddIcon />}>
                         Add Image
                     </Button>
@@ -155,7 +174,12 @@ class Image extends Component {
                     title={this.state.title}
                     content={this.state.content}
                 />
-                <Spinner loading={this.state.loading}/>
+
+                <ConfirmDialog open={this.state.openConfirmDialog}
+                    onClose={() => this.setState({ openConfirmDialog: false })}
+                    deleteAction={this.deleteImage} />
+
+                <Spinner loading={this.state.loading} />
             </>
         );
     }

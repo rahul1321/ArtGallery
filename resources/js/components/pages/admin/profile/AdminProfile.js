@@ -91,7 +91,7 @@ class AdminProfile extends Component {
                             this.props.setProfile(res.data.profile);
                             CustomToast.success("Successfully Profile Updated");
                         } else
-                            CustomToast.error("Something went wrong");
+                            CustomToast.error(res.data.message);
                     })
                     .catch(error => {
                         this.setState({ loading: false });

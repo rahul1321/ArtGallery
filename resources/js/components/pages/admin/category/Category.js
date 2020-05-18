@@ -13,7 +13,8 @@ import categoryAction from '../../../../redux/actions/categoryAction';
 import CustomModal from '../../../../Utils/CustomModal';
 import CustomToast from '../../../../Utils/CustomToast';
 import Spinner from '../../../../Utils/Spinner';
-
+import ConfirmDialog from '../../../../Utils/ConfirmDialog';
+import hmacSHA512 from 'crypto-js/hmac-sha512';
 
 class Category extends Component {
 
@@ -24,8 +25,12 @@ class Category extends Component {
             open: false,
             title: '',
             content: '',
-            loading: false
+            loading: false,
+            openConfirmDialog: false,
+            deletedCategory: null
         }
+
+        this.deleteCategory = this.deleteCategory.bind(this);
     }
 
     openModal(category) {
@@ -35,23 +40,36 @@ class Category extends Component {
             this.setState({ open: true, title: "Create Category", content: <EditCategory category={category} onClose={() => this.setState({ open: false })} /> });
     }
 
-    deleteCategory(category) {
-        this.setState({loading: true},()=>{
-            Axios.delete('api/categories/' + category.id)
-            .then(res => {
-                this.setState({loading: false});
-                if(res.data.success){
-                    const categories = this.props.categories.filter(item => item.id != category.id)
-                    this.props.setCategories(categories);
-                    CustomToast.success("Successfully deleted");
-                }else
+    openConfirmDialog(category) {
+        this.setState({deletedCategory:category , openConfirmDialog : true});
+    }
+
+    deleteCategory(){
+        let deletedCategory = this.state.deletedCategory;
+        if(deletedCategory != null){
+            let headers = {
+                'Authorization': localStorage.getItem(hmacSHA512('admin', 'k').toString())
+            }
+            this.setState({loading: true},()=>{
+                Axios.delete('api/categories/' + deletedCategory.id,{headers:headers})
+                .then(res => {
+                    this.setState({loading: false});
+                    if(res.data.success){
+                        const categories = this.props.categories.filter(item => item.id != deletedCategory.id)
+                        this.props.setCategories(categories);
+                        this.setState({deletedCategory:null , openConfirmDialog : false});
+                        CustomToast.success("Successfully deleted");
+                    }else
+                        CustomToast.error(res.data.message);
+                })
+                .catch(error=>{
+                    this.setState({loading: false});
                     CustomToast.error("Something went wrong");
+                })
             })
-            .catch(error=>{
-                this.setState({loading: false});
-                CustomToast.error("Something went wrong");
-            })
-        })
+        }else{
+            CustomToast.error("Category not found");
+        }
     }
 
 
@@ -80,7 +98,7 @@ class Category extends Component {
                             <IconButton size="small" className="btn-edit" onClick={this.openModal.bind(this, props.original)} aria-label="delete">
                                 <EditIcon />
                             </IconButton>
-                            <IconButton size="small" className="btn-delete" onClick={this.deleteCategory.bind(this, props.original)} aria-label="delete">
+                            <IconButton size="small" className="btn-delete" onClick={this.openConfirmDialog.bind(this, props.original)} aria-label="delete">
                                 <DeleteIcon />
                             </IconButton>
                         </>
@@ -111,10 +129,14 @@ class Category extends Component {
 
                 <CustomModal
                     open={this.state.open}
-                    onClose={() => this.setState({ open: false })}
+                    onClose={() => this.setState({open: false})}
                     title={this.state.title}
                     content={this.state.content}
                 />
+                <ConfirmDialog open={this.state.openConfirmDialog}
+                    onClose = {()=> this.setState({openConfirmDialog:false})} 
+                    deleteAction = {this.deleteCategory}/>
+
                 <Spinner loading={this.state.loading}/>
             </>
         );

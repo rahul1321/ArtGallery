@@ -37,16 +37,19 @@ class Gallery extends Component {
     setFirstCategoryAsDefault(callback) {
         Axios.get('api/categories/')
             .then(res => {
-                this.setState({ selectedCategory: res.data[0] });
-                callback(res.data[0]);
+                if(res.data.success){
+                    this.setState({ selectedCategory: res.data.categories[0] });
+                    callback(res.data.categories[0]);
+                }
             });
     }
 
     getImagesBySelectedCategory(category) {
-        console.log("getImagesBySelectedCategory->" + category.id);
         Axios.get('api/category-images/' + category.id)
             .then(res => {
-                this.createGalleryPhotosObject(res.data);
+                if(res.data.success){
+                    this.createGalleryPhotosObject(res.data.images);
+                }
             });
     }
 

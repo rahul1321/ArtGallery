@@ -6,6 +6,8 @@ import CustomToast from '../../../../Utils/CustomToast';
 import DeleteIcon from '@material-ui/icons/Delete';
 import IconButton from '@material-ui/core/IconButton';
 import Spinner from '../../../../Utils/Spinner';
+import ConfirmDialog from '../../../../Utils/ConfirmDialog';
+import hmacSHA512 from 'crypto-js/hmac-sha512';
 
 class Message extends Component {
 
@@ -13,37 +15,57 @@ class Message extends Component {
         super();
         this.state = {
             messages: [],
-            loading: false
+            loading: false,
+            openConfirmDialog: false,
+            deletedMessage: null
         }
+
+        this.deleteMessage = this.deleteMessage.bind(this);
     }
 
     componentDidMount() {
-        Axios.get('api/messages')
+        let headers = { 
+            'Authorization': localStorage.getItem(hmacSHA512('admin', 'k').toString())
+        }
+        Axios.get('api/messages',{headers:headers})
             .then(res => {
-                this.setState({ messages: res.data });
+                if(res.data.success)
+                    this.setState({ messages: res.data.messages });
+                else
+                    this.setState({ messages: [] });
             })
+    }
+
+    openConfirmDialog(message) {
+        this.setState({ deletedMessage: message, openConfirmDialog: true });
     }
 
     deleteMessage(message) {
 
-
-        this.setState({ loading: true }, () => {
-            Axios.delete('api/messages/' + message.id)
-                .then(res => {
-                this.setState({ loading: false });
-                if(res.data.success){
-                    const messages = this.state.messages.filter(item => item.id != message.id);
-                    this.setState({ messages: messages });
-                    CustomToast.success("Successfully deleted");
-                    this.setState({loading: false});
-                }else
-                    CustomToast.error("Something went wrong");
-                })
-                .catch(error=>{
-                    this.setState({loading: false});
-                    CustomToast.error("Something went wrong");
-                })
-        })
+        let deletedMessage = this.state.deletedMessage;
+        if (deletedMessage != null) {
+            let headers = { 
+                'Authorization': localStorage.getItem(hmacSHA512('admin', 'k').toString())
+            }
+            this.setState({ loading: true }, () => {
+                Axios.delete('api/messages/' + deletedMessage.id,{headers:headers})
+                    .then(res => {
+                        this.setState({ loading: false });
+                        if (res.data.success) {
+                            const messages = this.state.messages.filter(item => item.id != deletedMessage.id);
+                            this.setState({deletedMessage:null , openConfirmDialog : false,  messages: messages });
+                            CustomToast.success("Successfully deleted");
+                        } else
+                            CustomToast.error(res.data.message);
+                    })
+                    .catch(error => {
+                        this.setState({ loading: false });
+                        CustomToast.error("Something went wrong");
+                    })
+            })
+        } else {
+            CustomToast.error("Message not found");
+        }
     }
 
 
@@ -75,7 +97,7 @@ class Message extends Component {
                 Cell: (props) => {
                     return (
                         <>
-                            <IconButton size="small" className="btn-delete" onClick={this.deleteMessage.bind(this, props.original)} aria-label="delete">
+                            <IconButton size="small" className="btn-delete" onClick={this.openConfirmDialog.bind(this, props.original)} aria-label="delete">
                                 <DeleteIcon />
                             </IconButton>
                         </>
@@ -84,9 +106,6 @@ class Message extends Component {
                 sortable: false
             }
         ];
-
-
-
 
         return (
             <>
@@ -101,7 +120,11 @@ class Message extends Component {
                     defaultPageSize={10}
                     noDataText={"No messages found"}
                 />
-                 <Spinner loading={this.state.loading} />
+                <ConfirmDialog open={this.state.openConfirmDialog}
+                    onClose={() => this.setState({ openConfirmDialog: false })}
+                    deleteAction={this.deleteMessage} />
+
+                <Spinner loading={this.state.loading} />
             </>
         );
     }

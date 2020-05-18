@@ -12,13 +12,12 @@ import IdleTimer from 'react-idle-timer';
 import hmacSHA512 from 'crypto-js/hmac-sha512';
 import Axios from 'axios';
 
-
 class App extends Component {
 
     constructor() {
         super();
         this.state = {
-            timeout: 1000 * 60 * 5,
+            timeout: 1000 * 60 * 10,
             isLoggedIn: localStorage.getItem(hmacSHA512('admin', 'k').toString()) != null,
         }
 

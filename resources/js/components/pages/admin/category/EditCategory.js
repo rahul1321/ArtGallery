@@ -55,7 +55,7 @@ class EditCategory extends Component {
                             this.closeModal();
                             CustomToast.success("Successfully updated");
                         }else
-                            CustomToast.error("Something went wrong");
+                            CustomToast.error(res.data.message);
                     });
                 });                
             }
@@ -69,7 +69,7 @@ class EditCategory extends Component {
                             this.closeModal();
                             CustomToast.success("Successfully added");
                         }else
-                            CustomToast.error("Something went wrong");
+                            CustomToast.error(res.data.message);
                     })
                     .catch(error=>{
                         this.setState({loading:false});

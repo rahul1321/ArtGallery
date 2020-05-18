@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Accesstoken;
 use App\Admin;
 use App\Http\Controllers\Controller;
 use Exception;
@@ -13,19 +14,21 @@ class AdminController extends Controller
 {
     public function getAdmin($email,$password){
         try {
-
             $admin = Admin::where('email',$email)
             ->where('password',md5($password))
             ->first();
 
             if($admin != null){
                 $token = Str::uuid();
-                $admin->access_token = $token;
-                $admin->save();
+                $accessToken = new Accesstoken();
+                $accessToken->access_token = $token;
+                $accessToken->admin_id = $admin->id;
+                $accessToken->save();
 
                 return response()->json(["success" => true, "status" => 200, "access_token" => $token,  "admin" => $admin]);
-            }else
-                return response()->json(["success" => false, "status" => 404 ]);
+            }
+            
+            return response()->json(["success" => false, "status" => 404 ]);
 
         } catch (Exception  $ex) {
             Log::error($ex);
@@ -36,9 +39,8 @@ class AdminController extends Controller
 
     public function logout(Request $request){
         try {
-            $admin = Admin::where("access_token",$request->access_token)->First();
-            $admin->access_token = null;
-            $admin->save();
+            $accessToken = Accesstoken::where("access_token",$request->access_token)->First();
+            $accessToken->delete();
             return response()->json(["success" => true, "status" => 200]);
 
         } catch (Exception $ex) {

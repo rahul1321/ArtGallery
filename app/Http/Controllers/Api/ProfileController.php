@@ -11,10 +11,15 @@ use Illuminate\Support\Facades\Log;
 
 class ProfileController extends Controller
 {
-    
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(Profile::latest()->get());
+        try {
+            $profile = Profile::latest()->get();
+            return response()->json(["success"=> true, "status"=> 200, "profile" => $profile[0]]);
+        } catch (Exception $ex) {
+            Log::error($ex);
+            return Response()->json(["success"=>false, "status"=> 500, "message"=> "Internal server error"]);
+        }
     }
 
     
@@ -22,12 +27,13 @@ class ProfileController extends Controller
     {
         try {
             $token = $request->header('Authorization');
-            if($token){
-                if(Utils::isValidToken($token)){
+            if ($token) {
+                if (Utils::isValidToken($token)) {
                     $fileName = "profile_pic.png";
                     if ($request->hasFile('image')) {
-                        if(Utils::deleteFile(public_path('images')."/".$fileName)) // old file delete
+                        if (Utils::deleteFile(public_path('images')."/".$fileName)) { // old file delete
                             $request->file('image')->move(public_path('images'), $fileName);
+                        }
                     }
 
                     $profile->name = $request->name;
@@ -42,12 +48,11 @@ class ProfileController extends Controller
                     $profile->save();
         
                     return Response()->json(["success"=>true, "status"=> 200 , "profile"=> $profile]);
-                }else
-                    return response()->json(["success"=> false, "status"=> 401, "message" =>"Access Denied"]);
-
-            }else
+                }
                 return response()->json(["success"=> false, "status"=> 401, "message" =>"Access Denied"]);
-        }catch (Exception $ex) {
+            }
+            return response()->json(["success"=> false, "status"=> 401, "message" =>"Access Denied"]);
+        } catch (Exception $ex) {
             Log::error($ex);
             return Response()->json(["success"=>false, "status"=> 500, "message"=> "Internal server error"]);
         }

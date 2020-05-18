@@ -16,7 +16,7 @@ class MyPhotography extends Component {
     componentDidMount() {
         Axios.get('api/categoriesWithCoverImage')
             .then(res => {
-                this.setState({ catrgoriesWithImage: res.data });
+                this.setState({ catrgoriesWithImage: res.data.categories });
             })
     }
 

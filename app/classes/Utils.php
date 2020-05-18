@@ -2,6 +2,7 @@
 
 namespace App\classes;
 
+use App\Accesstoken;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Facades\Image;
@@ -30,8 +31,8 @@ class Utils
     public static function isValidToken($token)
     {
         try {
-            $admin = Admin::where("access_token", $token)->first();
-            return $admin != null;
+            $accessToken = Accesstoken::where("access_token", $token)->first();
+            return $accessToken != null;
         } catch (Exception $ex) {
             Log::error($ex);
             return false;

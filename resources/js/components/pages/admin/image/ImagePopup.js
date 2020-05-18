@@ -18,7 +18,7 @@ class ImagePopup extends Component {
             category_id: image != null ? image.category_id : null,
             description: image != null ? image.description : '',
             imageFile: null,
-            imgPreviewSrc: image != null ? '/images/' + image.image : 'http://via.placeholder.com/350x150',
+            imgPreviewSrc: image != null ? '/images/' + image.image : 'asset/images/350x150.png',
             image: image,
             titleError: "",
             imageFileError: "",
@@ -75,7 +75,7 @@ class ImagePopup extends Component {
                             this.closeModal();
                             CustomToast.success("Successfully updated");
                         }else
-                            CustomToast.error("Something went wrong");
+                            CustomToast.error(res.data.message);
                     })
                     .catch(error=>{
                         this.setState({loading:false});
@@ -93,7 +93,7 @@ class ImagePopup extends Component {
                             this.closeModal();
                             CustomToast.success("Successfully added");
                         }else
-                            CustomToast.error("Something went wrong");
+                            CustomToast.error(res.data.message);
                     })
                     .catch(error=>{
                         this.setState({loading:false});
