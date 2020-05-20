@@ -105,7 +105,7 @@ class Image extends Component {
             },
             {
                 Header: 'Category',
-                accessor: 'name',
+                accessor: 'category.name',
                 width: 250,
                 style: { textAlign: 'center' },
             },

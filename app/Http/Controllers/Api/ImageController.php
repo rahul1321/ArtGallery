@@ -15,13 +15,7 @@ class ImageController extends Controller
     public function index()
     {
         try {
-            $images = DB::table('images')
-                ->join('categories', 'categories.id', 'images.category_id')
-                ->select('images.*', 'categories.name')
-                ->get();
-                
-            //$images = Image::all();
-                
+            $images = Image::with('category')->get();
             return Response()->json(["success"=>true, "status"=> 200, "images" => $images]);
         } catch (Exception $ex) {
             Log::error($ex);
@@ -124,7 +118,8 @@ class ImageController extends Controller
             $image->category_id = $request->category_id;
             $image->image = $fileName;
             $image->save();
-    
+            $image = Image::where('id',$image->id)->with('category')->firstOrFail();
+            
             return Response()->json(["success"=>true, "status"=> 200 , "image"=> $image]);
         } catch (Exception $ex) {
             Log::error($ex);

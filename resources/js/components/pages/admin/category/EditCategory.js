@@ -56,6 +56,9 @@ class EditCategory extends Component {
                             CustomToast.success("Successfully updated");
                         }else
                             CustomToast.error(res.data.message);
+                    }).catch(error=>{
+                        this.setState({loading:false});
+                        CustomToast.error("Something went wrong");
                     });
                 });                
             }
