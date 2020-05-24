@@ -10,6 +10,7 @@ use App\Image;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 class CategoryController extends Controller
 {
@@ -17,10 +18,10 @@ class CategoryController extends Controller
     {
         try {
             $categories = Category::all();
-            return Response()->json(["success"=>true, "status"=> 200, "categories" => $categories]);
+            return response()->json(["success"=>true, "status"=> 200, "categories" => $categories]);
         } catch (Exception $ex) {
             Log::error($ex);
-            return Response()->json(["success"=>false, "status"=> 500, "message" =>"Internal server error"]);
+            return response()->json(["success"=>false, "status"=> 500, "message" =>"Internal server error"]);
         }
     }
 
@@ -31,15 +32,22 @@ class CategoryController extends Controller
             $token = $request->header('Authorization');
             if ($token) {
                 if (Utils::isValidToken($token)) {
-                    $category = new Category();
-                    $category->name = $request->name;
-                    $category->save();
+
+                    $validator = Validator::make($request->all(), [
+                        'name' => 'required'
+                    ]);
+
+                    if($validator->fails()){
+                        return response()->json($validator->errors(), 200);
+                    }
+
+                    $category = Category::create($request->all());
         
                     return Response()->json(["success"=>true, "status"=> 200 , "category"=> $category]);
                 }
-                return response()->json(["success"=> false, "status"=> 401, "message" =>"Access Denied"]);
+                return Response()->json(["success"=> false, "status"=> 401, "message" =>"Access Denied"]);
             }
-            return response()->json(["success"=> false, "status"=> 401, "message" =>"Access Denied"]);
+            return Response()->json(["success"=> false, "status"=> 401, "message" =>"Access Denied"]);
         } catch (Exception $ex) {
             Log::error($ex);
             return Response()->json(["success"=>false, "status"=> 500, "message" =>"Internal server error"]);
@@ -52,14 +60,22 @@ class CategoryController extends Controller
             $token = $request->header('Authorization');
             if ($token) {
                 if (Utils::isValidToken($token)) {
+                    $validator = Validator::make($request->all(), [
+                        'name' => 'required'
+                    ]);
+
+                    if($validator->fails()){
+                        return response()->json($validator->errors(), 200);
+                    }
+                   
                     $category->name = $request->name;
                     $category->save();
         
                     return Response()->json(["success"=>true, "status"=> 200 , "category"=> $category]);
                 }
-                return response()->json(["success"=> false, "status"=> 401, "message" =>"Access Denied"]);
+                return Response()->json(["success"=> false, "status"=> 401, "message" =>"Access Denied"]);
             }
-            return response()->json(["success"=> false, "status"=> 401, "message" =>"Access Denied"]);
+            return Response()->json(["success"=> false, "status"=> 401, "message" =>"Access Denied"]);
         } catch (Exception $ex) {
             Log::error($ex);
             return Response()->json(["success"=>false, "status"=> 500, "message" =>"Internal server error"]);
