@@ -18,19 +18,16 @@ Route::view('/{path?}', 'app');
 
 //Admin CRUD
 Route::get('api/admin/{email}/{password}','Api\AdminController@getAdmin');
-
 Route::post("api/logout", "Api\AdminController@logout");
 
 
 // Category CRUD
 Route::resource('api/categories', 'Api\CategoryController');
-
 Route::get('api/categoriesWithCoverImage','Api\CategoryController@getCategoriesWithCoverImage');
 
 
 // Images CRUD
 Route::resource('api/images', 'Api\ImageController');
-
 Route::get('api/category-images/{category_id}', 'Api\ImageController@imagesByCategory');
 
 

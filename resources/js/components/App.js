@@ -17,7 +17,7 @@ class App extends Component {
     constructor() {
         super();
         this.state = {
-            timeout: 1000 * 60 * 10,
+            timeout: 1000 * 60 * 15,
             isLoggedIn: localStorage.getItem(hmacSHA512('admin', 'k').toString()) != null,
         }
 

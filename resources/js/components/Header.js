@@ -30,7 +30,7 @@ class Header extends Component {
     setCategoriesData() {
         Axios.get('api/categories')
             .then(res => {
-                if(res.data.success)
+                if (res.data.success)
                     this.props.setCategories(res.data.categories);
             });
     }

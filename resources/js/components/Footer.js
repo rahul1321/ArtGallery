@@ -14,7 +14,7 @@ class Footer extends Component {
                             <div className="col-lg-4">
                                 <div className="mb-5">
                                     <h3 className="footer-heading mb-4">About ArtGallery</h3>
-                                     <p>This is my personal website. I upload my art and other photography stuffs in this site.
+                                    <p>This is my personal website. I upload my art and other photography stuffs in this site.
                                     </p>
                                 </div>
                             </div>
@@ -51,9 +51,7 @@ class Footer extends Component {
                         </div>
                         <div className="row pt-5 mt-5 text-center">
                             <div className="col-md-12">
-                                <p>
-                                  <span>Developed by <a href="https://resoftbd.com" target="_blank" >Resoft</a></span>  
-                                </p>
+
                             </div>
                         </div>
                     </div>
