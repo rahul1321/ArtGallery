@@ -108,13 +108,14 @@ class CategoryController extends Controller
     public function deleteAllImagesByCategory($categoryId)
     {
         try {
-            $images = Image::where('category_id', $categoryId)->get();
-        
-            foreach ($images as $image) {
+            $images = Image::where('category_id', $categoryId)
+            ->get()
+            ->each(function($image){
                 $file_path = public_path('images')."/".$image->image;
                 Utils::deleteFile($file_path);
                 $image->delete();
-            }
+            });
+            
             return true;
         } catch (Exception $ex) {
             Log::error($ex);
