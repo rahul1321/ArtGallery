@@ -6,7 +6,7 @@ import CloseIcon from '@material-ui/icons/Close';
 
 
 function getModalStyle() {
-  const top = 45;
+  const top = 50;
   const left = 50;
 
   return {
